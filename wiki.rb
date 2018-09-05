@@ -1,4 +1,5 @@
 require "sinatra"
+require "uri"
 
 set :bind, "0.0.0.0"
 
@@ -8,14 +9,38 @@ rescue Errno::ENONENT
     return nil
 end
 
-get"/" do
+def save_content(title, content)
+  File.open("pages/#{title}.txt", "w") do |file|
+    file.print(content)
+  end
+end
+
+get "/" do
   erb :welcome
 end
 
-get "/:title" do
-  page_content(params[:title])
+get "/new" do
+  erb :new
 end
 
-get "*" do
-  "Catch all endpoint hit"
+get "/:title" do
+  @title = params[:title]
+  @content = page_content(@title)
+  erb :show
 end
+
+get "/:title/edit" do
+  @title = params["title"]
+  @content = page_content(@title)
+  erb :edit
+end
+
+
+post "/create" do
+  save_content(params["title"], params["content"])
+  redirect URI.escape("/#{params["title"]}")
+end
+
+# get "*" do
+#   "Catch all endpoint hit"
+# end
